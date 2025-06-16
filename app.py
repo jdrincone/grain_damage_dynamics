@@ -20,6 +20,21 @@ st.title("Análisis de Regresión Cuantílica")
 st.markdown("""
 Esta aplicación permite analizar datos temporales utilizando regresión cuantílica.
 Seleccione una columna para ver su análisis y el mejor modelo de ajuste.
+
+### Descripción del Proceso
+
+1. **Carga de Datos**: Se cargan los datos desde el archivo 'Seguimiento de datos.xlsx' ubicado en la carpeta 'data/'.
+
+2. **Filtrado de Puntos Válidos**: Se filtran los puntos que cumplen la condición de función monótona creciente (la media debe ser mayor o igual que el punto anterior).
+
+3. **Ajuste de Modelos**: Se ajustan dos modelos a los puntos válidos:
+   - **Modelo Lineal**: Se ajusta una línea recta a los puntos.
+   - **Modelo Cuadrático**: Se ajusta una ecuación cuadrática a los puntos.
+
+4. **Visualización de Resultados**: Se muestran los puntos válidos junto con los ajustes lineal y cuadrático, incluyendo las ecuaciones y los valores de R².
+
+5. **Gráfica de la Media**: Se grafica la media vs Fecha, mostrando solo los puntos válidos y el ajuste lineal entre ellos.
+
 """)
 
 # Cargar datos
@@ -98,8 +113,8 @@ try:
     # Graficar los puntos y los ajustes
     fig_fits, ax_fits = plt.subplots(figsize=(12, 7))
     sns.scatterplot(ax=ax_fits, x=df_valid_filtered["Fecha"][mask], y=df_valid_filtered["mean"][mask], color=PALETTE["mean"], label="Media (puntos válidos)")
-    ax_fits.plot(df_valid_filtered["Fecha"][mask], y_linear, color='blue', label=f'Línea Recta: y = {linear_model.coef_[0]:.2f}x + {linear_model.intercept_:.2f} (R² = {r2_linear:.3f})')
-    ax_fits.plot(df_valid_filtered["Fecha"][mask], y_quadratic, color='green', label=f'Cuadrática: y = {quadratic_model.coef_[2]:.2f}x² + {quadratic_model.coef_[1]:.2f}x + {quadratic_model.intercept_:.2f} (R² = {r2_quadratic:.3f})')
+    ax_fits.plot(df_valid_filtered["Fecha"][mask], y_linear, color=PALETTE["ajuste"], label=f'Línea Recta: y = {linear_model.coef_[0]:.2f}x + {linear_model.intercept_:.2f} (R² = {r2_linear:.3f})')
+    ax_fits.plot(df_valid_filtered["Fecha"][mask], y_quadratic, color=PALETTE["median"], label=f'Cuadrática: y = {quadratic_model.coef_[2]:.2f}x² + {quadratic_model.coef_[1]:.2f}x + {quadratic_model.intercept_:.2f} (R² = {r2_quadratic:.3f})')
     ax_fits.set_title("Ajuste Lineal y Cuadrático a la Media vs Fecha", fontsize=16)
     ax_fits.set_xlabel("Fecha", fontsize=12)
     ax_fits.set_ylabel("Media", fontsize=12)
