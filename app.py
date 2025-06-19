@@ -16,24 +16,25 @@ st.set_page_config(
 )
 
 # Título y descripción
-st.title("Análisis de Regresión Cuantílica")
+st.title("Análisis de Regresión")
 st.markdown("""
 Esta aplicación permite analizar datos temporales utilizando regresión cuantílica.
 Seleccione una columna para ver su análisis y el mejor modelo de ajuste.
 
 ### Descripción del Proceso
 
-1. **Carga de Datos**: Se cargan los datos desde el archivo 'Seguimiento de datos.xlsx' ubicado en la carpeta 'data/'.
+1. **Carga de Datos**: Se cargan los datos desde el archivo 'Seguimiento de datos.xlsx'.
+2. **Filtrado Muestras Validas**: Se filtran muestras con más de 4 puntos.
 
-2. **Filtrado de Puntos Válidos**: Se filtran los puntos que cumplen la condición de función monótona creciente (la media debe ser mayor o igual que el punto anterior).
+3. **Filtrado de Puntos Válidos**: Se filtran los puntos que cumplen la condición de función monótona creciente (la media debe ser mayor o igual que el punto anterior).
 
-3. **Ajuste de Modelos**: Se ajustan dos modelos a los puntos válidos:
+4. **Ajuste de Modelos**: Se ajustan dos modelos a los puntos válidos:
    - **Modelo Lineal**: Se ajusta una línea recta a los puntos.
    - **Modelo Cuadrático**: Se ajusta una ecuación cuadrática a los puntos.
 
-4. **Visualización de Resultados**: Se muestran los puntos válidos junto con los ajustes lineal y cuadrático, incluyendo las ecuaciones y los valores de R².
+5. **Visualización de Resultados**: Se muestran los puntos válidos junto con los ajustes lineal y cuadrático, incluyendo las ecuaciones y los valores de R².
 
-5. **Gráfica de la Media**: Se grafica la media vs Fecha, mostrando solo los puntos válidos y el ajuste lineal entre ellos.
+6. **Gráfica de la Media**: Se grafica la media vs Fecha, mostrando solo los puntos válidos y el ajuste lineal entre ellos.
 
 """)
 
@@ -78,7 +79,7 @@ try:
     df_sorted["valid"] = df_sorted["mean"].diff().fillna(0) >= 0
     df_valid = df_sorted[df_sorted["valid"]]
 
-    st.header("Ajuste de la media para todas las muestras, solo se modela el comportamiento de las muestras a partir del mes 7.5")
+    st.header("Ajuste de la media para todas las muestras, solo se modela el comportamiento de las muestras a partir del mes 8")
 
     # Graficar la media vs Fecha, mostrando solo los puntos válidos
     fig_mean, ax_mean = plt.subplots(figsize=(12, 7))
@@ -123,6 +124,56 @@ try:
     plt.xticks(rotation=45)
     plt.tight_layout()
     st.pyplot(fig_fits)
+
+    st.header("Recomendaciones de Muestreado y adquisición de datos")
+
+    st.markdown("""
+    - Se recomienda que el muestreo se realice cada 15 días calendario, tondando días reales.
+    - Todas las muestras deben de estar almacenadas en las mismas condiciones de temperatura y humedad.
+                
+    """)
+
+    # Calculadora de predicción
+    st.header("Calculadora de Predicción")
+
+    # Input para el mes
+    mes_prediccion = st.number_input(
+        "Ingrese el mes para predecir el valor medio:",
+        min_value=0.0,
+        max_value=50.0,
+        value=10.0,
+        step=0.5,
+        help="Ingrese el mes (ej: 8.5 para mes 8.5)"
+    )
+
+    if st.button("Calcular Predicción"):
+        # Calcular predicción lineal
+        prediccion_lineal = linear_model.coef_[0] * mes_prediccion + linear_model.intercept_
+        
+        # Calcular predicción cuadrática
+        prediccion_cuadratica = quadratic_model.coef_[2] * (mes_prediccion**2) + quadratic_model.coef_[1] * mes_prediccion + quadratic_model.intercept_
+        
+        # Mostrar resultados
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.metric(
+                label="Predicción Lineal",
+                value=f"{prediccion_lineal:.2f}",
+                delta=f"R² = {r2_linear:.3f}"
+            )
+        
+        with col2:
+            st.metric(
+                label="Predicción Cuadrática", 
+                value=f"{prediccion_cuadratica:.2f}",
+                delta=f"R² = {r2_quadratic:.3f}"
+            )
+        
+        # Mostrar ecuaciones
+        st.subheader("Ecuaciones Utilizadas:")
+        st.write(f"**Ecuación Lineal:** y = {linear_model.coef_[0]:.4f}x + {linear_model.intercept_:.4f}")
+        st.write(f"**Ecuación Cuadrática:** y = {quadratic_model.coef_[2]:.4f}x² + {quadratic_model.coef_[1]:.4f}x + {quadratic_model.intercept_:.4f}")
 
 except Exception as e:
     st.error(f"Error al cargar los datos: {str(e)}")
