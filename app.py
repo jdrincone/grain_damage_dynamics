@@ -73,6 +73,56 @@ try:
     fig = plot_best_fit(df, selected_column, best_model.iloc[0])
     st.pyplot(fig)
 
+    # Calculadora para la columna seleccionada
+    st.header(f"Calculadora de Predicción - {selected_column}")
+
+    # Input para el mes
+    mes_prediccion_columna = st.number_input(
+        f"Ingrese el mes para predecir el valor de {selected_column}:",
+        min_value=0,
+        max_value=50,
+        value=10,
+        step=1,
+        help="Ingrese el mes (ej: 8.5 para mes 8.5)",
+        key="mes_columna"
+    )
+
+    if st.button("Calcular Predicción", key="btn_columna"):
+        # Obtener parámetros del mejor modelo
+        b0 = best_model.iloc[0]['b0']
+        b1 = best_model.iloc[0]['b1']
+        b2 = best_model.iloc[0]['b2']
+        modelo = best_model.iloc[0]['modelo']
+        pseudo_r2 = best_model.iloc[0]['pseudo_r2']
+        
+        # Calcular predicción según el tipo de modelo
+        if modelo == "Lineal (orden 1)":
+            prediccion = b0 + b1 * mes_prediccion_columna
+            ecuacion = f"y = {b0:.4f} + {b1:.4f}x"
+        elif modelo == "Cuadrático (orden 2)":
+            prediccion = b0 + b1 * mes_prediccion_columna + b2 * (mes_prediccion_columna**2)
+            ecuacion = f"y = {b0:.4f} + {b1:.4f}x + {b2:.4f}x²"
+        elif modelo == "Logarítmico":
+            prediccion = b0 + b1 * np.log(mes_prediccion_columna)
+            ecuacion = f"y = {b0:.4f} + {b1:.4f}ln(x)"
+        
+        # Mostrar resultado
+        st.metric(
+            label=f"Predicción para {selected_column}",
+            value=f"{prediccion:.2f}",
+            delta=f"R² = {pseudo_r2:.3f}"
+        )
+        
+        # Mostrar información del modelo
+        st.subheader("Información del Modelo:")
+        st.write(f"**Mejor Modelo:** {modelo}")
+        st.write(f"**Ecuación:** {ecuacion}")
+        st.write(f"**Pseudo R²:** {pseudo_r2:.4f}")
+        
+        # Mostrar todos los modelos para comparación
+        st.subheader("Comparación de Modelos:")
+        st.dataframe(results.sort_values('pseudo_r2', ascending=False))
+
     # Calcular la media y filtrar puntos que no cumplen la condición de función monótona creciente
     df["mean"] = df.drop(columns=["Fecha"]).mean(axis=1)
     df_sorted = df.sort_values("Fecha")
@@ -139,10 +189,10 @@ try:
     # Input para el mes
     mes_prediccion = st.number_input(
         "Ingrese el mes para predecir el valor medio:",
-        min_value=0.0,
-        max_value=50.0,
-        value=10.0,
-        step=0.5,
+        min_value=0,
+        max_value=50,
+        value=18,
+        step=1,
         help="Ingrese el mes (ej: 8.5 para mes 8.5)"
     )
 
