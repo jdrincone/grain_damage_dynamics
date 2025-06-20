@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # Título y descripción
-st.title("Análisis de Regresión")
+st.title("Análisis Degradación de la Calidad del Grano en función de los meses de almacenamiento")
 st.markdown("""
 Esta aplicación permite analizar datos temporales utilizando regresión cuantílica.
 Seleccione una columna para ver su análisis y el mejor modelo de ajuste.
